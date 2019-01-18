@@ -1,6 +1,6 @@
 {
-  "name": "react-azure-adb2c",
-  "version": "0.2.0",
+  "name": "react-azure-b2c",
+  "version": "0.2.1",
   "description": "Authentication library for Azure AD B2C and ReactJS",
   "main": "lib/react-azure-adb2c.js",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jamesrandall/react-azure-adb2c.git"
+    "url": "git+https://github.com/NetchexDev/react-azure-adb2c.git"
   },
   "keywords": [
     "react",
