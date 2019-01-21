@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/JamesRandall/react-azure-adb2c#readme",
   "dependencies": {
-    "msal": "^0.1.5"
+    "msal": "0.2.4"
   },
   "peerDependencies": {
     "react": "^15.0.0 || ^16.0.0"
