@@ -12,17 +12,17 @@ PRs welcome!
 
 If you are using npm:
 
-    npm install react-azure-adb2c --save
+    npm install react-azure-b2c --save
 
 Or if you are using yarn:
 
-    yarn add react-azure-adb2c
+    yarn add react-azure-b2c
 
 ## Initializing the Library
 
 You'll first need to load the module and pass some configuration to the library. Normally this would go in your index.js file:
 
-    import authentication from 'react-azure-adb2c';
+    import authentication from 'react-azure-b2c';
     authentication.initialize({
         // optional, will default to this
         instance: 'https://login.microsoftonline.com/tfp/', 
@@ -30,18 +30,14 @@ You'll first need to load the module and pass some configuration to the library.
         tenant: 'myb2ctenant.onmicrosoft.com',
         // the policy to use to sign in, can also be a sign up or sign in policy
         signInPolicy: 'mysigninpolicy',
-        // the policy to use for password reset
-        resetPolicy: 'mypasswordresetpolicy',
         // the the B2C application you want to authenticate with (that's just a random GUID - get yours from the portal)
-        applicationId: '75ee2b43-ad2c-4366-9b8f-84b7d19d776e',
+        clientId: '75ee2b43-ad2c-4366-9b8f-84b7d19d776e',
         // where MSAL will store state - localStorage or sessionStorage
         cacheLocation: 'sessionStorage',
         // the scopes you want included in the access token
         scopes: ['https://myb2ctenant.onmicrosoft.com/management/admin'],
         // optional, the redirect URI - if not specified MSAL will pick up the location from window.href
-        redirectUri: 'http://localhost:3000',
-        // optional, the URI to redirect to after logout
-        postLogoutRedirectUri: 'http://myapp.com'
+        redirectUri: 'http://localhost:3000'
     });
     
 ## Authenticating When The App Starts
@@ -58,7 +54,7 @@ If you want to set things up so that a user is authenticated as soon as they hit
 If you want to set things up so that a user is authenticated as they visit a part of the application that requires authentication then the appropriate components can be wrapped inside higher order components that will handle the authentication process. This is done using the _authentication.required_ function, normally in conjunction with a router. The example below shows this using the popular react-router:
 
     import React, { Component } from 'react';
-    import authentication from 'react-azure-adb2c'
+    import authentication from 'react-azure-b2c'
     import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
     import HomePage from './Homepage'
     import MembersArea from './MembersArea'
@@ -80,7 +76,7 @@ If you want to set things up so that a user is authenticated as they visit a par
 
 Simply call the method _getAccessToken_:
 
-    import authentication from 'react-azure-adb2c'
+    import authentication from 'react-azure-b2c'
 
     // ...
 
@@ -90,7 +86,7 @@ Simply call the method _getAccessToken_:
 
 To sign out:
 
-    import authentication from 'react-azure-adb2c'
+    import authentication from 'react-azure-b2c'
 
     // ...
 
