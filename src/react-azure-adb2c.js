@@ -8,7 +8,8 @@ const state = {
   stopLoopingRedirect: false,
   launchApp: null,
   accessToken: null,
-  scopes: []
+  scopes: [],
+  cacheLocation: null
 }
 
 function authCallback(errorDesc, token, error, tokenType) {
@@ -16,7 +17,6 @@ function authCallback(errorDesc, token, error, tokenType) {
     redirect()
   }
   else if (errorDesc) {
-    console.log(error + ':' + errorDesc)
     state.stopLoopingRedirect = true
   } else {
     acquireToken()
@@ -28,26 +28,31 @@ function redirect() {
   }
 
 function acquireToken(successCallback) {
-    const user = window.msal.getUser(state.scopes)
-    if (!user){
-        window.msal.loginRedirect(state.scopes)
-    }
-    else {
-        window.msal.acquireTokenSilent(state.scopes).then(accessToken => {
-            state.accessToken = accessToken
-            if (state.launchApp) {
-                state.launchApp()
+  const user = window.msal.getUser(state.scopes)
+  if (!user){
+    window.msal.loginRedirect(state.scopes)
+  }
+  else {
+      window.msal.acquireTokenSilent(state.scopes).then(accessToken => {
+        if (state.cacheLocation == 'localStorage'){
+          localStorage.setItem('Authorization', 'Bearer ' + accessToken);
+        } else {
+          sessionStorage.setItem('Authorization', 'Bearer ' + accessToken);
+        }
+
+        state.accessToken = accessToken
+        if (state.launchApp) {
+            state.launchApp()
+        }
+        if (successCallback) {
+            successCallback()
+        }
+        }, error => {
+            if (error) {
+                window.msal.acquireTokenRedirect(state.scopes)
             }
-            if (successCallback) {
-                successCallback()
-            }
-            }, error => {
-                if (error) {
-                    window.msal.acquireTokenRedirect(state.scopes)
-                }
-            })
-    }
-    
+        })
+  }    
 }
 
 const authentication = {
@@ -60,6 +65,7 @@ const authentication = {
       state.stopLoopingRedirect = true
     }
     state.scopes = scopes
+    state.cacheLocation = config.cacheLocation
 
     if (config.redirectUri){
       new Msal.UserAgentApplication(
