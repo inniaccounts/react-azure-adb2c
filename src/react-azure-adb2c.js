@@ -74,7 +74,8 @@ const authentication = {
         authCallback,
         { 
           cacheLocation: config.cacheLocation,
-          redirectUri: config.redirectUri
+          redirectUri: config.redirectUri,
+          postLogoutRedirectUri: config.postLogoutRedirectUri
         }
       )
     } else {

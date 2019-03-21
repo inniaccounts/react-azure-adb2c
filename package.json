@@ -1,6 +1,6 @@
 {
   "name": "react-azure-b2c",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Authentication library for Azure AD B2C and ReactJS",
   "main": "lib/react-azure-adb2c.js",
   "scripts": {
