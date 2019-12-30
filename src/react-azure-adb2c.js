@@ -67,7 +67,7 @@ const cleanUpStorage = cacheLocation => {
 
 const authentication = {
   initialize: (config) => {
-    const instance = 'https://login.microsoftonline.com/tfp/'
+    const instance = 'https://www.b2clogin.com/tfp/'
     const authority = `${instance}${config.tenant}/${config.signInPolicy}`
     cleanUpStorage(config.cacheLocation)
     let scopes = config.scopes
