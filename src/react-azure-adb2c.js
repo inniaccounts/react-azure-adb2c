@@ -67,7 +67,8 @@ const cleanUpStorage = cacheLocation => {
 
 const authentication = {
   initialize: (config) => {
-    const instance = 'https://login.microsoftonline.com/tfp/'
+    const tenantSubdomain = config.tenant.split('.')[0]
+    const instance = `https://${tenantSubdomain}.b2clogin.com/tfp/`
     const authority = `${instance}${config.tenant}/${config.signInPolicy}`
     cleanUpStorage(config.cacheLocation)
     let scopes = config.scopes
@@ -86,7 +87,8 @@ const authentication = {
         {
           cacheLocation: config.cacheLocation,
           redirectUri: config.redirectUri,
-          postLogoutRedirectUri: config.postLogoutRedirectUri
+          postLogoutRedirectUri: config.postLogoutRedirectUri,
+          validateAuthority: false
         }
       )
     } else {
@@ -95,7 +97,8 @@ const authentication = {
         authority,
         authCallback,
         {
-          cacheLocation: config.cacheLocation
+          cacheLocation: config.cacheLocation,
+          validateAuthority: false
         }
       )
     }
