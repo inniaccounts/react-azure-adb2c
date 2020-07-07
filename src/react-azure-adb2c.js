@@ -1,8 +1,9 @@
 // note on window.msal usage. There is little point holding the object constructed by new Msal.UserAgentApplication
 // as the constructor for this class will make callbacks to the acquireToken function and these occur before
 // any local assignment can take place. Not nice but its how it works.
-import * as Msal from 'msal'
+import * as msal from 'msal'
 import React from 'react'
+import { initializeConfig, msalAppConfig, B2C_SCOPES } from "./auth-utils"
 
 const LOCAL_STORAGE = 'localStorage'
 const SESSION_STORAGE = 'sessionStorage'
@@ -10,33 +11,25 @@ const AUTHORIZATION_KEY = 'Authorization'
 
 const state = {
   stopLoopingRedirect: false,
+  config: {
+    scopes: [],
+    cacheLocation: null,
+  },
   launchApp: null,
   accessToken: null,
-  scopes: [],
-  cacheLocation: null
+  msalObj: null,
 }
 
-function authCallback (errorDesc, token, error, tokenType) {
-  if (errorDesc && errorDesc.indexOf('AADB2C90118') > -1) {
-    redirect()
-  } else if (errorDesc) {
-    state.stopLoopingRedirect = true
-  } else {
-    acquireToken()
-  }
-}
-
-function redirect () {
-  acquireToken()
-}
+let msalApp;
 
 function acquireToken (successCallback) {
-  const user = window.msal.getUser(state.scopes)
-  if (!user) {
-    window.msal.loginRedirect(state.scopes)
+  const account = msalApp.getAccount()
+
+  if (!account) {
+    msalApp.loginRedirect(B2C_SCOPES.API_ACCESS)
   } else {
-    window.msal.acquireTokenSilent(state.scopes).then(accessToken => {
-      if (state.cacheLocation === LOCAL_STORAGE) {
+    msalApp.acquireTokenSilent(B2C_SCOPES.API_ACCESS).then(accessToken => {
+      if (msalAppConfig.cache.cacheLocation === LOCAL_STORAGE) {
         window.localStorage.setItem(AUTHORIZATION_KEY, 'Bearer ' + accessToken)
       } else {
         window.sessionStorage.setItem(AUTHORIZATION_KEY, 'Bearer ' + accessToken)
@@ -51,65 +44,26 @@ function acquireToken (successCallback) {
       }
     }, error => {
       if (error) {
-        window.msal.acquireTokenRedirect(state.scopes)
+        msalApp.acquireTokenRedirect(B2C_SCOPES.API_ACCESS)
       }
     })
   }
 }
 
-const cleanUpStorage = cacheLocation => {
-  if (cacheLocation === LOCAL_STORAGE) {
-    window.localStorage.removeItem(AUTHORIZATION_KEY)
-  } else if (cacheLocation === SESSION_STORAGE) {
-    window.sessionStorage.removeItem(AUTHORIZATION_KEY)
-  }
-}
-
 const authentication = {
   initialize: (config) => {
-    const tenantSubdomain = config.tenant.split('.')[0]
-    const instance = `https://${tenantSubdomain}.b2clogin.com/tfp/`
-    const authority = `${instance}${config.tenant}/${config.signInPolicy}`
-    cleanUpStorage(config.cacheLocation)
-    let scopes = config.scopes
-    if (!scopes || scopes.length === 0) {
-      console.log('To obtain access tokens you must specify one or more scopes. See https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-access-tokens')
-      state.stopLoopingRedirect = true
-    }
-    state.scopes = scopes
-    state.cacheLocation = config.cacheLocation
-
-    if (config.redirectUri) {
-      new Msal.UserAgentApplication(
-        config.clientId,
-        authority,
-        authCallback,
-        {
-          cacheLocation: config.cacheLocation,
-          redirectUri: config.redirectUri,
-          postLogoutRedirectUri: config.postLogoutRedirectUri,
-          validateAuthority: false
-        }
-      )
-    } else {
-      new Msal.UserAgentApplication(
-        config.clientId,
-        authority,
-        authCallback,
-        {
-          cacheLocation: config.cacheLocation,
-          validateAuthority: false
-        }
-      )
-    }
+    initializeConfig(config)
+    msalApp = new msal.UserAgentApplication(msalAppConfig)
   },
   run: (launchApp) => {
     state.launchApp = launchApp
-    if (!window.msal.isCallback(window.location.hash) && window.parent === window && !window.opener) {
-      if (!state.stopLoopingRedirect) {
-        acquireToken()
+    msalApp.handleRedirectCallback(error => {
+      if (error) {
+        const errorMessage = error.errorMessage ? error.errorMessage : "Unable to acquire access token."
+        console.log(errorMessage)
       }
-    }
+    })
+    acquireToken()
   },
   required: (WrappedComponent, renderLoading) => {
     return class extends React.Component {
@@ -121,14 +75,6 @@ const authentication = {
         }
       }
 
-      componentWillMount () {
-        acquireToken(() => {
-          this.setState({
-            signedIn: true
-          })
-        })
-      }
-
       render () {
         if (this.state.signedIn) {
           return (<WrappedComponent {...this.props} />)
@@ -137,7 +83,7 @@ const authentication = {
       }
     }
   },
-  signOut: () => window.msal.logout(),
+  signOut: () => msalApp.logout(),
   getAccessToken: () => state.accessToken
 }
 
