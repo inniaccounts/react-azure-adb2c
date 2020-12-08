@@ -57,6 +57,24 @@ function acquireToken (successCallback) {
   }
 }
 
+function acquireTokenWithoutLogin (successCallback) {
+  const user = window.msal.getUser(state.scopes)
+  if (user) {
+    window.msal.acquireTokenSilent(state.scopes).then(accessToken => {
+      if (state.cacheLocation === LOCAL_STORAGE) {
+        window.localStorage.setItem(AUTHORIZATION_KEY, 'Bearer ' + accessToken)
+      } else {
+        window.sessionStorage.setItem(AUTHORIZATION_KEY, 'Bearer ' + accessToken)
+      }
+
+      state.accessToken = accessToken
+      if (successCallback) {
+        successCallback()
+      }
+    })
+  }
+}
+
 const cleanUpStorage = cacheLocation => {
   if (cacheLocation === LOCAL_STORAGE) {
     window.localStorage.removeItem(AUTHORIZATION_KEY)
@@ -138,7 +156,8 @@ const authentication = {
     }
   },
   signOut: () => window.msal.logout(),
-  getAccessToken: () => state.accessToken
+  getAccessToken: () => state.accessToken,
+  acquireTokenWithoutLogin: (callback) => acquireTokenWithoutLogin(callback)
 }
 
 export default authentication
